@@ -1,1 +1,41 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
+contract AppointmentBooking {
+    address public owner;
+    mapping(uint256 => address) public appointments;
+
+    event AppointmentBooked(uint256 indexed slot, address indexed user);
+    event AppointmentCanceled(uint256 indexed slot, address indexed user);
+
+    
+    constructor() {
+        owner = msg.sender;
+    }
+    
+    function bookAppointment(uint256 slot) public {
+        assert(slot > 0);
+        require(appointments[slot] == address(0), "Appointment slot already booked");
+    
+        appointments[slot] = msg.sender;
+        emit AppointmentBooked(slot, msg.sender);
+    
+        require(appointments[slot] == msg.sender, "Failed to book appointment"); 
+    }
+
+    function cancelAppointment(uint256 slot) public {
+        address patient = appointments[slot];
+        appointments[slot] = address(0);
+        emit AppointmentCanceled(slot, msg.sender);
+        
+        if (patient == address(0)) {
+            revert("Appointment already canceled");
+        } else {
+            appointments[slot] = address(0);
+        }
+    }
+
+    function isSlotBooked(uint256 slot) public view returns (bool) {
+        return appointments[slot] != address(0);
+    }
+}
